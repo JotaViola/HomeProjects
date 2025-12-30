@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Controle Financeiro</title>
+
+<style>
+:root{
+  --bg:#0a0a0f;
+  --panel:#12121a;
+  --panel-2:#181824;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --gold:#d4af37;
+
+  --nubank:#7c3aed;
+  --inter:#f97316;
+  --caixa:#2563eb;
+  --poupanca:#9ca3af;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter, Arial, sans-serif;
+  background:
+    radial-gradient(1200px 600px at top, #141420 0%, transparent 60%),
+    var(--bg);
+  color:var(--text);
+}
+
+/* ===== HEADER ===== */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  padding:24px;
+  gap:20px;
+}
+
+.topo{
+  display:flex;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+.caixa-topo{
+  background:linear-gradient(180deg,#1b1b28,#12121a);
+  border:1px solid rgba(212,175,55,.4);
+  border-radius:14px;
+  padding:12px 16px;
+  min-width:130px;
+  text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,.35);
+}
+
+.caixa-topo div,
+.caixa-topo label{
+  font-size:12px;
+  letter-spacing:.08em;
+  color:var(--muted);
+}
+
+.caixa-topo input{
+  margin-top:6px;
+  width:100%;
+  background:transparent;
+  border:none;
+  color:#fff;
+  font-size:20px;
+  font-weight:600;
+  text-align:center;
+}
+
+#sobra{
+  margin-top:6px;
+  font-size:20px;
+  font-weight:700;
+  color:var(--gold);
+}
+
+/* ===== RESUMO ===== */
+.resumo{
+  background:linear-gradient(180deg,#1a1a26,#12121a);
+  border:1px solid #2a2a3a;
+  border-radius:14px;
+  padding:14px 18px;
+  font-size:14px;
+  line-height:1.6;
+  box-shadow:0 10px 25px rgba(0,0,0,.35);
+}
+
+.resumo span{
+  float:right;
+  font-weight:600;
+}
+
+/* ===== MAIN ===== */
+main{
+  padding:24px;
+}
+
+select{
+  background:var(--panel-2);
+  color:#fff;
+  border:1px solid #2a2a3a;
+  border-radius:10px;
+  padding:8px 12px;
+  margin-bottom:24px;
+}
+
+/* ===== BLOCOS ===== */
+.blocos{
+  display:flex;
+  flex-direction:column;
+  gap:28px;
+}
+
+
+.bloco{
+  background:linear-gradient(180deg,#1b1b28,#12121a);
+  border-radius:18px;
+  padding:16px;
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  border:1px solid #2a2a3a;
+}
+
+.bloco h2{
+  margin:0 0 14px;
+  font-size:18px;
+  font-weight:600;
+  letter-spacing:.04em;
+}
+
+/* ===== CORES DOS BLOCOS ===== */
+.nubank{border-left:4px solid var(--nubank)}
+.inter{border-left:4px solid var(--inter)}
+.caixa{border-left:4px solid var(--caixa)}
+.poupanca{border-left:4px solid var(--poupanca)}
+
+/* ===== LINHAS ===== */
+.linha{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr 50px 26px;
+  gap:8px;
+  margin-bottom:8px;
+}
+
+.header{
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+input{
+  background:#0e0e16;
+  border:1px solid #2a2a3a;
+  border-radius:8px;
+  color:#fff;
+  padding:6px 8px;
+}
+
+input[type="checkbox"]{
+  accent-color:var(--gold);
+  transform:scale(1.1);
+}
+
+button{
+  background:#1f1f2f;
+  border:1px solid #2a2a3a;
+  color:#fff;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#2a2a3f;
+}
+
+/* ===== GRÁFICO ===== */
+canvas{
+  width:100%;
+  background:linear-gradient(180deg,#0e0e16,#0a0a0f);
+  border-radius:16px;
+  margin-top:10px;
+  box-shadow:inset 0 0 0 1px #1f1f2f;
+}
+
+.link-meta{
+  align-self:flex-start;
+  text-decoration:none;
+  color:var(--gold);
+  border:1px solid rgba(212,175,55,.4);
+  padding:8px 14px;
+  border-radius:12px;
+  font-weight:600;
+  background:linear-gradient(180deg,#1b1b28,#12121a);
+  box-shadow:0 8px 20px rgba(0,0,0,.35);
+  transition:.2s;
+}
+
+.link-meta:hover{
+  transform:translateY(-1px);
+  box-shadow:0 12px 30px rgba(0,0,0,.45);
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <a href="meta.html" class="link-meta">🎯 Metas</a>
+
+  <div class="caixa-topo">
+  <div>SALDO</div>
+  <input id="saldo" type="number" oninput="salvar();calcular()">
+</div>
+
+<div class="caixa-topo">
+  <div>TAINÁ</div>
+  <input id="taina" type="number" oninput="salvar();calcular()">
+</div>
+
+<div class="caixa-topo">
+  <div>JOÃO</div>
+  <input id="joao" type="number" oninput="salvar();calcular()">
+</div>
+
+    <div class="caixa-topo">SOBRA<div id="sobra">0</div></div>
+  </div>
+
+  <div class="resumo">
+    Receitas: <span id="rReceitas">0</span><br>
+    Despesas: <span id="rDespesas">0</span><br>
+    Sobra: <span id="rSobra">0</span>
+  </div>
+</header>
+
+<main>
+<select id="mes" onchange="trocarMes()"></select>
+
+<div class="blocos">
+
+<!-- Nubank -->
+<div class="bloco nubank">
+<h2>Nubank</h2>
+<div class="linha header">
+<div>Descrição</div><div>Parcela</div><div>Categoria</div><div>Valor</div><div>Pago</div>
+</div>
+<div id="nubank"></div>
+<button onclick="criarLinha('nubank')">+</button>
+</div>
+
+<!-- Inter -->
+<div class="bloco inter">
+<h2>Inter</h2>
+<div class="linha header">
+<div>Descrição</div><div>Parcela</div><div>Categoria</div><div>Valor</div><div>Pago</div>
+</div>
+<div id="inter"></div>
+<button onclick="criarLinha('inter')">+</button>
+</div>
+
+<!-- Caixa -->
+<div class="bloco caixa">
+<h2>Caixa</h2>
+<div class="linha header">
+<div>Descrição</div><div>Parcela</div><div>Categoria</div><div>Valor</div><div>Pago</div>
+</div>
+<div id="caixa"></div>
+<button onclick="criarLinha('caixa')">+</button>
+</div>
+
+<!-- Poupança -->
+<div class="bloco poupanca">
+<h2>Poupança</h2>
+<div id="poupanca"></div>
+<button onclick="criarLinhaPoupanca()">+</button>
+</div>
+
+</div>
+
+<!-- Gráfico -->
+<div class="bloco" style="margin-top:30px">
+<h2>📈 Gráfico Mensal</h2>
+<canvas id="graficoMensal" height="120"></canvas>
+
+<div style="display:flex;gap:20px;justify-content:center;margin-top:10px">
+<span style="color:#16a34a">■ Receitas</span>
+<span style="color:#dc2626">■ Despesas</span>
+<span style="color:#d4af37">■ Sobra</span>
+<span style="color:#9ca3af">■ Poupança</span>
+</div>
+</div>
+
+</main>
+
+<script>
+const meses=[
+"2026-01","2026-02","2026-03","2026-04","2026-05","2026-06",
+"2026-07","2026-08","2026-09","2026-10","2026-11","2026-12"
+];
+let mesAtual;
+
+function initMes(){
+  const sel=document.getElementById("mes");
+  meses.forEach(m=>{
+    const o=document.createElement("option");
+    o.value=m; o.text=m;
+    sel.appendChild(o);
+  });
+  mesAtual=meses[0];
+}
+
+function trocarMes(){
+  mesAtual=document.getElementById("mes").value;
+  carregar();
+}
+
+function criarLinha(bloco,d={}){
+  const l=document.createElement("div");
+  l.className="linha";
+  l.innerHTML=`
+  <input value="${d.nome||""}" oninput="salvar()">
+  <input>
+  <input value="${d.cat||""}" oninput="salvar()">
+  <input type="number" value="${d.valor||0}" oninput="salvar();calcular()">
+  <input type="checkbox" ${d.pago?"checked":""} onchange="salvar();calcular()">
+  <button onclick="this.parentElement.remove();salvar();calcular()">✕</button>`;
+  document.getElementById(bloco).appendChild(l);
+}
+
+function criarLinhaPoupanca(v=0){
+  const l=document.createElement("div");
+  l.className="linha";
+  l.innerHTML=`
+  <input value="Depósito">
+  <input type="number" value="${v}" oninput="salvar();calcular()">
+  <button onclick="this.parentElement.remove();salvar();calcular()">✕</button>`;
+  document.getElementById("poupanca").appendChild(l);
+}
+
+function coletar(bloco){
+  let t=0;
+  document.querySelectorAll("#"+bloco+" .linha").forEach(l=>{
+    const i=l.querySelectorAll("input");
+    if(!i[4]?.checked) t+=+i[3].value||0;
+  });
+  return t;
+}
+
+function poupancaMes(){
+  let t=0;
+  document.querySelectorAll("#poupanca input[type=number]").forEach(i=>t+=+i.value||0);
+  return t;
+}
+
+function poupancaAcumulada(){
+  let t=0;
+  meses.forEach(m=>{
+    if(m<=mesAtual){
+      const d=JSON.parse(localStorage.getItem("fin_"+m))||{};
+      t+=d.poupanca||0;
+    }
+  });
+  return t;
+}
+
+function salvar(){
+  const d={
+    saldo:saldo.value,
+    taina:taina.value,
+    joao:joao.value,
+    nubank:[],
+    inter:[],
+    caixa:[],
+    poupanca:poupancaMes()
+  };
+  ["nubank","inter","caixa"].forEach(b=>{
+    document.querySelectorAll("#"+b+" .linha").forEach(l=>{
+      const i=l.querySelectorAll("input");
+      d[b].push({nome:i[0].value,valor:+i[3].value||0,pago:i[4].checked});
+    });
+  });
+  localStorage.setItem("fin_"+mesAtual,JSON.stringify(d));
+}
+
+function carregar(){
+  const d=JSON.parse(localStorage.getItem("fin_"+mesAtual))||{};
+  saldo.value=d.saldo||0;
+  taina.value=d.taina||0;
+  joao.value=d.joao||0;
+
+  ["nubank","inter","caixa","poupanca"].forEach(b=>document.getElementById(b).innerHTML="");
+  (d.nubank||[]).forEach(x=>criarLinha("nubank",x));
+  (d.inter||[]).forEach(x=>criarLinha("inter",x));
+  (d.caixa||[]).forEach(x=>criarLinha("caixa",x));
+  if(d.poupanca) criarLinhaPoupanca(d.poupanca);
+
+  calcular();
+}
+
+let anim=null;
+function desenharGrafico(r,d,s,p){
+  const c=graficoMensal;
+  if(!c) return;
+  const ctx=c.getContext("2d");
+  const w=c.width=c.offsetWidth;
+  const h=c.height;
+  const dados=[
+    {v:r,c:"#16a34a",l:"Receitas"},
+    {v:d,c:"#dc2626",l:"Despesas"},
+    {v:s,c:"#d4af37",l:"Sobra"},
+    {v:p,c:"#9ca3af",l:"Poupança"}
+  ];
+  const max=Math.max(...dados.map(x=>x.v),1);
+  let pgr=0;
+  if(anim) cancelAnimationFrame(anim);
+
+  function a(){
+    pgr+=.04;
+    ctx.clearRect(0,0,w,h);
+    dados.forEach((x,i)=>{
+      const hgt=(x.v/max)*(h-50)*pgr;
+      ctx.fillStyle=x.c;
+      ctx.fillRect(60+i*80,h-30-hgt,50,hgt);
+      ctx.fillStyle="#fff";
+      ctx.fillText(x.v.toFixed(2),85+i*80,h-35-hgt);
+    });
+    if(pgr<1) anim=requestAnimationFrame(a);
+  }
+  a();
+}
+
+function calcular(){
+  // Receitas
+  const receitas = (+taina.value || 0) + (+joao.value || 0);
+
+  // Despesas normais (cartões)
+  const despesasCartoes =
+    coletar("nubank") +
+    coletar("inter") +
+    coletar("caixa");
+
+  // Depósito do mês na poupança
+  const poupancaDoMes = poupancaMes();
+
+  // Total de despesas do mês (inclui poupança)
+  const despesasTotais = despesasCartoes + poupancaDoMes;
+
+  // Sobra real
+  const sobraCalc = receitas - despesasTotais;
+
+  // Atualização do topo
+  sobra.textContent = sobraCalc.toFixed(2);
+
+  // Resumo mensal
+  rReceitas.textContent = receitas.toFixed(2);
+  rDespesas.textContent = despesasTotais.toFixed(2);
+  rSobra.textContent = sobraCalc.toFixed(2);
+
+  // Gráfico (poupança acumulada continua igual)
+  desenharGrafico(
+    receitas,
+    despesasTotais,
+    sobraCalc,
+    poupancaAcumulada()
+  );
+}
+
+
+initMes();
+carregar();
+</script>
+
+</body>
+</html>
