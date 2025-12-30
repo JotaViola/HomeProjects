@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Metas</title>
+
+<style>
+:root{
+  --bg:#0b0b10;
+  --card:#151520;
+  --card2:#1c1c2b;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --gold:#d4af37;
+  --green:#22c55e;
+  --red:#ef4444;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter, Arial, sans-serif;
+  background:radial-gradient(900px 400px at top,#141420,transparent),var(--bg);
+  color:var(--text);
+}
+
+header{
+  padding:24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+h1{margin:0;font-size:22px}
+
+.seletor button{
+  background:#11111a;
+  border:1px solid #2a2a3a;
+  color:#fff;
+  padding:10px 18px;
+  border-radius:14px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.seletor button.ativo{
+  border-color:var(--gold);
+  color:var(--gold);
+}
+
+main{
+  padding:24px;
+  max-width:900px;
+  margin:auto;
+}
+
+.lista{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.meta{
+  background:linear-gradient(180deg,var(--card2),var(--card));
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.45);
+}
+
+.meta.fixada{
+  border:1px solid var(--gold);
+}
+
+.topo{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.topo input[type=checkbox]{
+  transform:scale(1.2);
+}
+
+.topo button{
+  background:none;
+  border:none;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:16px;
+}
+
+.topo button.pin{color:var(--gold)}
+
+textarea{
+  width:100%;
+  background:transparent;
+  border:none;
+  color:#fff;
+  resize:none;
+  margin-top:8px;
+  font-size:15px;
+}
+
+.campos{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+  flex-wrap:wrap;
+}
+
+.campos input, .campos select{
+  background:#0f0f18;
+  border:1px solid #2a2a3a;
+  border-radius:12px;
+  padding:8px;
+  color:#fff;
+  font-size:13px;
+}
+
+.barra{
+  margin-top:10px;
+  height:9px;
+  background:#0f0f18;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.barra span{
+  display:block;
+  height:100%;
+  background:linear-gradient(90deg,var(--gold),#f5d76e);
+  width:0%;
+  transition:.4s;
+}
+
+.percent{
+  font-size:12px;
+  text-align:right;
+  margin-top:4px;
+}
+
+.meta.concluida textarea{
+  text-decoration:line-through;
+  opacity:.6;
+}
+
+.add{
+  margin-top:30px;
+  text-align:center;
+}
+
+.add button{
+  background:none;
+  border:1px dashed var(--gold);
+  color:var(--gold);
+  padding:14px 22px;
+  border-radius:16px;
+  cursor:pointer;
+  font-weight:600;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🎯 Metas</h1>
+  <div class="seletor">
+    <button id="btntaina" onclick="selecionar('taina')">Tainá</button>
+    <button id="btnjoao" onclick="selecionar('joao')">João</button>
+  </div>
+</header>
+
+<main>
+  <div class="lista" id="lista"></div>
+
+  <div class="add">
+    <button onclick="novaMeta()">➕ Nova meta</button>
+  </div>
+</main>
+
+<script>
+let pessoa="taina";
+
+function selecionar(p){
+  pessoa=p;
+  document.querySelectorAll(".seletor button").forEach(b=>b.classList.remove("ativo"));
+  document.getElementById("btn"+p).classList.add("ativo");
+  carregar();
+}
+
+function novaMeta(dados={}){
+  const div=document.createElement("div");
+  div.className="meta"+(dados.fixa?" fixada":"");
+
+  div.innerHTML=`
+  <div class="topo">
+    <input type="checkbox" ${dados.done?"checked":""} onchange="salvar()">
+    <div>
+      <button class="pin" onclick="fixar(this)">📌</button>
+      <button onclick="remover(this)">✕</button>
+    </div>
+  </div>
+
+  <textarea placeholder="Descrição da meta...">${dados.text||""}</textarea>
+
+  <div class="campos">
+    <select onchange="salvar()">
+      <option value="simples">✔ Simples</option>
+      <option value="quantidade">📘 Quantidade</option>
+      <option value="dinheiro">💰 Dinheiro</option>
+    </select>
+
+    <input type="number" placeholder="Alvo" value="${dados.alvo||""}">
+    <input type="number" placeholder="Atual" value="${dados.atual||0}">
+    <input type="date" value="${dados.prazo||""}">
+  </div>
+
+  <div class="barra"><span></span></div>
+  <div class="percent">0%</div>
+  `;
+
+  document.getElementById("lista").appendChild(div);
+
+  div.querySelector("select").value=dados.tipo||"simples";
+
+  atualizar(div);
+  salvar();
+}
+
+function atualizar(div){
+  const tipo=div.querySelector("select").value;
+  const alvo=+div.querySelectorAll("input")[1].value||0;
+  let atual=+div.querySelectorAll("input")[2].value||0;
+
+  let perc=0;
+
+  if(tipo==="dinheiro"){
+    atual=+localStorage.getItem("poupanca_acumulada")||0;
+    div.querySelectorAll("input")[2].value=atual;
+    perc=alvo?Math.min(100,(atual/alvo)*100):0;
+  }
+
+  if(tipo==="quantidade"){
+    perc=alvo?Math.min(100,(atual/alvo)*100):0;
+  }
+
+  if(tipo==="simples"){
+    perc=div.querySelector('input[type=checkbox]').checked?100:0;
+  }
+
+  div.querySelector(".barra span").style.width=perc+"%";
+  div.querySelector(".percent").innerText=Math.round(perc)+"%";
+
+  div.classList.toggle("concluida",perc>=100);
+}
+
+function salvar(){
+  const dados=[];
+  document.querySelectorAll(".meta").forEach(div=>{
+    atualizar(div);
+    const inputs=div.querySelectorAll("input");
+    dados.push({
+      done:inputs[0].checked,
+      text:div.querySelector("textarea").value,
+      tipo:div.querySelector("select").value,
+      alvo:inputs[1].value,
+      atual:inputs[2].value,
+      prazo:inputs[3].value,
+      fixa:div.classList.contains("fixada")
+    });
+  });
+  localStorage.setItem("metas_"+pessoa,JSON.stringify(dados));
+}
+
+function carregar(){
+  const lista=document.getElementById("lista");
+  lista.innerHTML="";
+  (JSON.parse(localStorage.getItem("metas_"+pessoa))||[])
+    .sort((a,b)=>b.fixa-a.fixa)
+    .forEach(m=>novaMeta(m));
+}
+
+function remover(btn){
+  btn.closest(".meta").remove();
+  salvar();
+}
+
+function fixar(btn){
+  btn.closest(".meta").classList.toggle("fixada");
+  salvar();
+}
+
+selecionar("taina");
+</script>
+
+</body>
+</html>
