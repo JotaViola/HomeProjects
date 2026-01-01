@@ -207,35 +207,25 @@ canvas{
   transform:translateY(-1px);
   box-shadow:0 12px 30px rgba(0,0,0,.45);
 }
-
 </style>
 </head>
 
 <body>
 
 <header>
-    <a href="meta.html" class="link-meta">🎯 Metas</a>
-
-  <div class="caixa-topo">
-  <div>SALDO</div>
-  <input id="saldo" type="number" oninput="salvar();calcular()">
-</div>
-
-<div class="caixa-topo">
-  <div>TAINÁ</div>
-  <input id="taina" type="number" oninput="salvar();calcular()">
-</div>
-
-<div class="caixa-topo">
-  <div>JOÃO</div>
-  <input id="joao" type="number" oninput="salvar();calcular()">
-</div>
-
+      <a href="meta.html" class="link-meta">🎯 Metas</a>
+  <div style="display:flex;gap:12px">
+    <div class="caixa-topo">SALDO<input id="saldo" type="number" oninput="salvar();calcular()"></div>
+    <div class="caixa-topo">TAINÁ<input id="taina" type="number" oninput="salvar();calcular()"></div>
+    <div class="caixa-topo">JOÃO<input id="joao" type="number" oninput="salvar();calcular()"></div>
     <div class="caixa-topo">SOBRA<div id="sobra">0</div></div>
   </div>
 
   <div class="resumo">
     Receitas: <span id="rReceitas">0</span><br>
+    Cartões: <span id="rCartoes">0</span><br>
+    Fixos: <span id="rFixos">0</span><br>
+    Poupança: <span id="rPoupanca">0</span><br>
     Despesas: <span id="rDespesas">0</span><br>
     Sobra: <span id="rSobra">0</span>
   </div>
@@ -246,7 +236,17 @@ canvas{
 
 <div class="blocos">
 
-<!-- Nubank -->
+<!-- FIXOS -->
+<div class="bloco">
+  <h2>📌 Fixos</h2>
+  <div class="linha header">
+    <div>Descrição</div><div>Categoria</div><div>Valor</div><div>Pago</div>
+  </div>
+  <div id="fixos"></div>
+  <button onclick="criarLinhaFixo()">+</button>
+</div>
+
+<!-- NUBANK -->
 <div class="bloco nubank">
 <h2>Nubank</h2>
 <div class="linha header">
@@ -256,7 +256,7 @@ canvas{
 <button onclick="criarLinha('nubank')">+</button>
 </div>
 
-<!-- Inter -->
+<!-- INTER -->
 <div class="bloco inter">
 <h2>Inter</h2>
 <div class="linha header">
@@ -266,7 +266,7 @@ canvas{
 <button onclick="criarLinha('inter')">+</button>
 </div>
 
-<!-- Caixa -->
+<!-- CAIXA -->
 <div class="bloco caixa">
 <h2>Caixa</h2>
 <div class="linha header">
@@ -276,63 +276,50 @@ canvas{
 <button onclick="criarLinha('caixa')">+</button>
 </div>
 
-<!-- Poupança -->
+<!-- POUPANÇA -->
 <div class="bloco poupanca">
 <h2>Poupança</h2>
 <div id="poupanca"></div>
 <button onclick="criarLinhaPoupanca()">+</button>
 </div>
 
-</div>
-
-<!-- Gráfico -->
-<div class="bloco" style="margin-top:30px">
+<!-- GRÁFICO -->
+<div class="bloco">
 <h2>📈 Gráfico Mensal</h2>
-<canvas id="graficoMensal" height="120"></canvas>
-
-<div style="display:flex;gap:20px;justify-content:center;margin-top:10px">
-<span style="color:#16a34a">■ Receitas</span>
-<span style="color:#dc2626">■ Despesas</span>
-<span style="color:#d4af37">■ Sobra</span>
-<span style="color:#9ca3af">■ Poupança</span>
-</div>
+<canvas id="graficoMensal" height="140"></canvas>
 </div>
 
+</div>
 </main>
 
 <script>
-const meses=[
-"2026-01","2026-02","2026-03","2026-04","2026-05","2026-06",
-"2026-07","2026-08","2026-09","2026-10","2026-11","2026-12"
-];
+const meses=["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06",
+"2026-07","2026-08","2026-09","2026-10","2026-11","2026-12"];
 let mesAtual;
 
 function initMes(){
-  const sel=document.getElementById("mes");
+  const sel=mes.value="";
   meses.forEach(m=>{
     const o=document.createElement("option");
-    o.value=m; o.text=m;
-    sel.appendChild(o);
+    o.value=o.text=m;
+    mes.appendChild(o);
   });
   mesAtual=meses[0];
 }
 
-function trocarMes(){
-  mesAtual=document.getElementById("mes").value;
-  carregar();
-}
+function trocarMes(){mesAtual=mes.value;carregar();}
 
-function criarLinha(bloco,d={}){
+function criarLinha(b,d={}){
   const l=document.createElement("div");
   l.className="linha";
   l.innerHTML=`
-  <input value="${d.nome||""}" oninput="salvar()">
+  <input value="${d.nome||""}">
   <input>
-  <input value="${d.cat||""}" oninput="salvar()">
+  <input>
   <input type="number" value="${d.valor||0}" oninput="salvar();calcular()">
   <input type="checkbox" ${d.pago?"checked":""} onchange="salvar();calcular()">
   <button onclick="this.parentElement.remove();salvar();calcular()">✕</button>`;
-  document.getElementById(bloco).appendChild(l);
+  document.getElementById(b).appendChild(l);
 }
 
 function criarLinhaPoupanca(v=0){
@@ -342,12 +329,48 @@ function criarLinhaPoupanca(v=0){
   <input value="Depósito">
   <input type="number" value="${v}" oninput="salvar();calcular()">
   <button onclick="this.parentElement.remove();salvar();calcular()">✕</button>`;
-  document.getElementById("poupanca").appendChild(l);
+  poupanca.appendChild(l);
 }
 
-function coletar(bloco){
+/* ===== FIXOS ===== */
+function criarLinhaFixo(d={}){
+  const l=document.createElement("div");
+  l.className="linha";
+  l.innerHTML=`
+    <input value="${d.nome||""}" oninput="salvarFixos();calcular()">
+    <input value="${d.cat||""}" oninput="salvarFixos();calcular()">
+    <input type="number" value="${d.valor||0}" oninput="salvarFixos();calcular()">
+    <input type="checkbox" ${d.pago?"checked":""} onchange="salvarFixos();calcular()">
+    <button onclick="this.parentElement.remove();salvarFixos();calcular()">✕</button>`;
+  fixos.appendChild(l);
+}
+
+function salvarFixos(){
+  const f=[];
+  document.querySelectorAll("#fixos .linha").forEach(l=>{
+    const i=l.querySelectorAll("input");
+    f.push({nome:i[0].value,cat:i[1].value,valor:+i[2].value||0,pago:i[3].checked});
+  });
+  localStorage.setItem("fin_fixos",JSON.stringify(f));
+}
+
+function carregarFixos(){
+  fixos.innerHTML="";
+  (JSON.parse(localStorage.getItem("fin_fixos"))||[]).forEach(criarLinhaFixo);
+}
+
+function totalFixos(){
   let t=0;
-  document.querySelectorAll("#"+bloco+" .linha").forEach(l=>{
+  document.querySelectorAll("#fixos .linha").forEach(l=>{
+    const i=l.querySelectorAll("input");
+    if(!i[3].checked) t+=+i[2].value||0;
+  });
+  return t;
+}
+
+function coletar(b){
+  let t=0;
+  document.querySelectorAll("#"+b+" .linha").forEach(l=>{
     const i=l.querySelectorAll("input");
     if(!i[4]?.checked) t+=+i[3].value||0;
   });
@@ -360,27 +383,8 @@ function poupancaMes(){
   return t;
 }
 
-function poupancaAcumulada(){
-  let t=0;
-  meses.forEach(m=>{
-    if(m<=mesAtual){
-      const d=JSON.parse(localStorage.getItem("fin_"+m))||{};
-      t+=d.poupanca||0;
-    }
-  });
-  return t;
-}
-
 function salvar(){
-  const d={
-    saldo:saldo.value,
-    taina:taina.value,
-    joao:joao.value,
-    nubank:[],
-    inter:[],
-    caixa:[],
-    poupanca:poupancaMes()
-  };
+  const d={saldo:saldo.value,taina:taina.value,joao:joao.value,nubank:[],inter:[],caixa:[],poupanca:poupancaMes()};
   ["nubank","inter","caixa"].forEach(b=>{
     document.querySelectorAll("#"+b+" .linha").forEach(l=>{
       const i=l.querySelectorAll("input");
@@ -395,86 +399,51 @@ function carregar(){
   saldo.value=d.saldo||0;
   taina.value=d.taina||0;
   joao.value=d.joao||0;
-
-  ["nubank","inter","caixa","poupanca"].forEach(b=>document.getElementById(b).innerHTML="");
-  (d.nubank||[]).forEach(x=>criarLinha("nubank",x));
-  (d.inter||[]).forEach(x=>criarLinha("inter",x));
-  (d.caixa||[]).forEach(x=>criarLinha("caixa",x));
+  ["nubank","inter","caixa"].forEach(b=>{
+    document.getElementById(b).innerHTML="";
+    (d[b]||[]).forEach(x=>criarLinha(b,x));
+  });
+  poupanca.innerHTML="";
   if(d.poupanca) criarLinhaPoupanca(d.poupanca);
-
   calcular();
 }
 
-let anim=null;
-function desenharGrafico(r,d,s,p){
-  const c=graficoMensal;
-  if(!c) return;
-  const ctx=c.getContext("2d");
-  const w=c.width=c.offsetWidth;
-  const h=c.height;
-  const dados=[
-    {v:r,c:"#16a34a",l:"Receitas"},
-    {v:d,c:"#dc2626",l:"Despesas"},
-    {v:s,c:"#d4af37",l:"Sobra"},
-    {v:p,c:"#9ca3af",l:"Poupança"}
-  ];
-  const max=Math.max(...dados.map(x=>x.v),1);
-  let pgr=0;
-  if(anim) cancelAnimationFrame(anim);
-
-  function a(){
-    pgr+=.04;
-    ctx.clearRect(0,0,w,h);
-    dados.forEach((x,i)=>{
-      const hgt=(x.v/max)*(h-50)*pgr;
-      ctx.fillStyle=x.c;
-      ctx.fillRect(60+i*80,h-30-hgt,50,hgt);
-      ctx.fillStyle="#fff";
-      ctx.fillText(x.v.toFixed(2),85+i*80,h-35-hgt);
-    });
-    if(pgr<1) anim=requestAnimationFrame(a);
-  }
-  a();
-}
-
 function calcular(){
-  // Receitas
-  const receitas = (+taina.value || 0) + (+joao.value || 0);
+  const receitas=(+taina.value||0)+(+joao.value||0);
+  const cartoes=coletar("nubank")+coletar("inter")+coletar("caixa");
+  const fixosV=totalFixos();
+  const poup=poupancaMes();
+  const despesas=cartoes+fixosV+poup;
+  const sobraCalc=receitas-despesas;
 
-  // Despesas normais (cartões)
-  const despesasCartoes =
-    coletar("nubank") +
-    coletar("inter") +
-    coletar("caixa");
+  sobra.textContent=sobraCalc.toFixed(2);
+  rReceitas.textContent=receitas.toFixed(2);
+  rCartoes.textContent=cartoes.toFixed(2);
+  rFixos.textContent=fixosV.toFixed(2);
+  rPoupanca.textContent=poup.toFixed(2);
+  rDespesas.textContent=despesas.toFixed(2);
+  rSobra.textContent=sobraCalc.toFixed(2);
 
-  // Depósito do mês na poupança
-  const poupancaDoMes = poupancaMes();
-
-  // Total de despesas do mês (inclui poupança)
-  const despesasTotais = despesasCartoes + poupancaDoMes;
-
-  // Sobra real
-  const sobraCalc = receitas - despesasTotais;
-
-  // Atualização do topo
-  sobra.textContent = sobraCalc.toFixed(2);
-
-  // Resumo mensal
-  rReceitas.textContent = receitas.toFixed(2);
-  rDespesas.textContent = despesasTotais.toFixed(2);
-  rSobra.textContent = sobraCalc.toFixed(2);
-
-  // Gráfico (poupança acumulada continua igual)
-  desenharGrafico(
-    receitas,
-    despesasTotais,
-    sobraCalc,
-    poupancaAcumulada()
-  );
+  desenharGrafico(receitas,despesas,sobraCalc,poup);
 }
 
+function desenharGrafico(r,d,s,p){
+  const c=graficoMensal,ctx=c.getContext("2d");
+  c.width=c.offsetWidth;
+  ctx.clearRect(0,0,c.width,c.height);
+  const dados=[r,d,s,p],cores=["#16a34a","#dc2626","#d4af37","#9ca3af"];
+  const max=Math.max(...dados,1);
+  dados.forEach((v,i)=>{
+    const h=(v/max)*(c.height-40);
+    ctx.fillStyle=cores[i];
+    ctx.fillRect(40+i*70,c.height-20-h,40,h);
+    ctx.fillStyle="#fff";
+    ctx.fillText(v.toFixed(0),45+i*70,c.height-25-h);
+  });
+}
 
 initMes();
+carregarFixos();
 carregar();
 </script>
 
